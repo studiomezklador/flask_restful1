@@ -13,11 +13,30 @@ class Info(Command):
     """ Display Python Version used by this API. """
     def __init__(self):
         self.py_version = ".".join(map(str, sys.version_info[:3]))
-        self.intro = '- FLASK CLI Manager: running with Python {} -'.format(self.py_version)
-        self.heads = "-" * len(self.intro)
+        self.intro = 'FLASK CLI Manager: running with Python {}'.format(self.py_version)
+        self.root = app.root_path
+        # self.heads = "-" * len(self.intro)
 
     def run(self):
-        print(self.heads, self.intro, self.heads, sep='\n', end='\n')
+        
+        # heads = "-" * len(self.root) if len(self.root) > len(self.intro) else "-" * len(self.intro)
+        if len(self.root) > len(self.intro):
+            self.root = '- ' + self.root + ' -'
+            heads = "-" * len(self.root)
+            intro_space = int(abs((len(self.root) - len(self.intro)) / 2)) - 1
+            intro = '-' + ' ' * intro_space
+            intro += self.intro + ' ' * intro_space
+            intro += '-'
+            r = self.root
+        else:
+            self.intro = '- ' + self.intro + ' -'
+            heads = '-' * len(self.intro)
+            root_space = int(abs((len(self.intro) - len(self.root)) / 2)) - 1
+            r = '-' + ' ' * root_space
+            r += self.root + ' ' * root_space
+            r += '-'
+            intro = self.intro
+        print(heads, intro, r, heads, sep='\n', end='\n')
 
 
 class Fuck(Command):
