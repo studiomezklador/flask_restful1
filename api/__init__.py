@@ -10,3 +10,6 @@ ai = Api(app)
 
 app.config['JSONIFY_PRETTYPRINT_REGULAR'] = True
 app.config['JSON_AS_ASCII'] = False
+
+
+app.config['SECRET_KEY'] = 'JDJiJDEwJHlaV043RkhadVNYQmlVYXhqSDVjLi41TFdFRy56OWdGMXpja3dvaFpQM3Nzb2hZWmhiNmpx'
