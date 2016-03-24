@@ -17,10 +17,10 @@ class Vault:
         return self.show()
 
     def show(self):
-        return self.b64_value
+        return self.b64_value.decode()
 
     def is_valid(self, req_value):
-        req_value = b64decode(req_value)
+        req_value = b64decode(req_value.encode('ascii'))
         # print("entry: {}\nIndoor: {}".format(req_value, self.bcrypt_value))
         return req_value == self.bcrypt_value
 
