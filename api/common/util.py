@@ -1,3 +1,4 @@
+import uuid
 import bcrypt
 import moment
 from base64 import b64encode, b64decode
@@ -26,3 +27,10 @@ class Vault:
 
     def invalid(self, req_value):
         return not self.is_valid(req_value)
+
+class RndKey:
+    def __init__(self):
+        self.key = uuid.uuid4().hex
+    
+    def get(self):
+        return self.key

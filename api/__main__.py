@@ -4,7 +4,8 @@ from flask import jsonify, request
 
 class HelloWorld(Resource):
     def get(self):
-        return jsonify(dict(hello='World', code=200, status=True, evil=None))
+        ip = request.remote_addr
+        return jsonify(dict(hello='World', ip=ip, code=200, status=True, evil=None))
 
 
 TODOS = {
