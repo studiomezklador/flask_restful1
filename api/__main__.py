@@ -1,6 +1,6 @@
 from __init__ import ai, app
-from flask_restful import reqparse, abort, Resource
-from flask import jsonify, request
+from flask_restful import reqparse, abort, Resource, fields, marshal
+from flask import jsonify, request, make_response
 
 class HelloWorld(Resource):
     def get(self):
@@ -11,9 +11,19 @@ class HelloWorld(Resource):
 TODOS = {
         'todo1': {'task': 'run something', 'status': None, 'active': True, 'integer': 5, 'float':45.123},
         'todo2': {'task': 'build a box', 'status': [], 'active': False, 'integer':101, 'float':.257},
-    'todo3': {'task': 'busy-awared', 'status': ['yank', 'mystic'], 'active': True, 'integer':15, 'float':.4567},
+    'todo3': {'task': 'busy-awared', 'status': ['yank', 'mystic'], 'active': True, 'integer':15, 'float':None},
 
 }
+
+todo_fields = {
+    'task': fields.String,
+    'status': fields.List,
+    'active': fields.Boolean,
+    'integer': fields.Integer,
+    'float': fields.Float,
+    'uri': fields.Url('task')
+}
+
 
 def error_todo_not_find(todo_id):
     if todo_id not in TODOS:
@@ -48,14 +58,15 @@ class TodoList(Resource):
                         total=len(TODOS),
                         remain=len(TODOS) - paginate,
                         result=list(TODOS.items())[0:paginate])
-        return TODOS
+        return TODOS, 200
 
     def post(self):
         args = parser.parse_args()
         todo_id = int(max(TODOS.keys()).lstrip('todo')) + 1
         todo_id = 'todo{}'.format(todo_id)
         TODOS[todo_id] = {'task': args['task']}
-        return TODOS[todo_id], 201
+        return make_response(jsonify(dict(result=TODOS[todo_id],
+                                          status="inserted")), 201)
 
 ai.add_resource(HelloWorld, '/')
 ai.add_resource(TodoList, '/todos')

@@ -5,7 +5,7 @@ from flask_restful import Api
 # from api.resources.bar import Bar
 
 app = Flask(__name__)
-ai = Api(app)
+ai = Api(app, prefix='/v1')
 
 
 app.config['JSONIFY_PRETTYPRINT_REGULAR'] = True
