@@ -1,14 +1,15 @@
 #!/usr/bin/env python3
+from importlib.machinery import SourceFileLoader
 import sys
 import string
 import os
 import re
 import moment
-import bcrypt
 from base64 import b64encode, b64decode
 
 from flask.ext.script import Manager, Command, Option, prompt, prompt_bool
-from api.__init__ import app, ai
+from api.__init__ import app, ai, parentdir
+from api.app import db as database
 
 
 manager = Manager(app)
@@ -64,9 +65,8 @@ class Fuck(Command):
         print(string.capwords("fuck you!"), end='\n\n')
         return
 
-
+"""
 class SecretKey(Command):
-    """ Generate a secret hard Key, based on bcrypt + base64 """
     def __init__(self):
         self.enc_value = moment.utcnow().timezone('Europe/Paris').format('YYYY-M-D H:m').encode('utf-8')
         self.hashed = b64encode(bcrypt.hashpw(self.enc_value, bcrypt.gensalt(10)))
@@ -86,10 +86,38 @@ class SecretKey(Command):
                 modified.write(nu_content)
             print("New secret key inserted into app.config!", end='\n\n')
         print("Secret key (encrypted): {}\nSecret key (decoded): {}".format(enc_key,b64decode(enc_key)))
+"""
+
+class DbCreator(Command):
+    def __init__(self, db_name='db'):
+        self.db_path = os.path.join(parentdir, 'store')
+        self.all_dbs = [f for f in os.listdir(self.db_path) if os.path.isfile(os.path.join(self.db_path, f))]
+        self.db_name = db_name
+
+    def get_options(self):
+            return [
+                    Option('--name', '-n', dest='dbname', default=self.db_name),
+            ]
+        
+
+
+    def run(self, dbname):
+        import api.models.auth
+        dbn = dbname + '.sqlite'
+        if dbn in self.all_dbs:
+            print("{} already exists!".format(dbname))
+            return False
+        print("Creating {0} at {1}".format(dbn, self.db_path))
+        print(database, app.config['SQLALCHEMY_DATABASE_URI'])
+        # database.create_all()
+        return True
+
+
 
 manager.add_command('info', Info())
 manager.add_command('fuck', Fuck())
-manager.add_command('secret', SecretKey())
+manager.add_command('createdb', DbCreator())
+# manager.add_command('secret', SecretKey())
 
 if __name__ == '__main__':
     manager.run()
