@@ -10,7 +10,7 @@ from base64 import b64encode, b64decode
 from flask.ext.script import Manager, Command, Option, prompt, prompt_bool
 from api.__init__ import app, ai, parentdir
 from api.app import db as database
-
+from api.tools.krypt import rnd
 
 manager = Manager(app)
 
@@ -65,30 +65,58 @@ class Fuck(Command):
         print(string.capwords("fuck you!"), end='\n\n')
         return
 
-"""
 class SecretKey(Command):
+    """ Generate SECRET_KEY in Flask's config file. """
     def __init__(self):
-        self.enc_value = moment.utcnow().timezone('Europe/Paris').format('YYYY-M-D H:m').encode('utf-8')
-        self.hashed = b64encode(bcrypt.hashpw(self.enc_value, bcrypt.gensalt(10)))
-        self.root_path = app.root_path 
-        self.config_file = os.path.join(self.root_path, '__init__.py')
-
-
-    def run(self):
-        enc_key = self.hashed
+        self.root_path = parentdir 
+        self.config_file = os.path.join(self.root_path, 'common', 'config.py')
+    
+    def get_options(self):
+        return [
+                Option('--length', '-l',
+                    dest='length',
+                    default='32',
+                    help="Specify the length of the random AlphaNum Key (32 char long, by default)."),
+        ]
+ 
+    def run(self, length):
         if prompt_bool("Overwrite app.secret_key?"):
-            app_secret_key = "app.config['SECRET_KEY']"
-            nu_line = "{} = '{}'\n".format(app_secret_key, enc_key.decode())
+            app_secret_key = "SECRET_KEY"
+            hashed = rnd(int(length))
+            nu_line = "{} = '{}'\n".format(app_secret_key, hashed)
+            
             with open (self.config_file, 'r') as origin:
-                old_data = origin.read()
-            nu_content = old_data + '\n\n' + nu_line
+                old_data = origin.readlines()
+            
+            nu_content = ''.join(self.overwriteSecretKey(old_data)) + '\n\n' + nu_line
+            
             with open(self.config_file, 'w') as modified:
                 modified.write(nu_content)
-            print("New secret key inserted into app.config!", end='\n\n')
-        print("Secret key (encrypted): {}\nSecret key (decoded): {}".format(enc_key,b64decode(enc_key)))
-"""
+            
+            print("*" * 5,
+                    "New secret key inserted into {}".format(self.config_file),
+                    sep='\n',
+                    end='\n\n')
+
+            print('-' * 5,
+                    "Key value = {}".format(hashed),
+                    sep='\n')
+            
+            return True
+        
+        print('No secret key generate. Cancelled.')
+        return False
+
+    def overwriteSecretKey(self, input_list):
+        for index, line in enumerate(input_list):
+            matchObj = re.match(r'^SECRET_KEY\s\=\s(.*)$', line, re.M|re.I)
+            if matchObj:
+                input_list.pop(index)
+        return input_list
+
 
 class DbCreator(Command):
+    """ Create Sqlite file for database.  """
     def __init__(self, db_name='db'):
         self.db_path = os.path.join(parentdir, 'store')
         self.all_dbs = [f for f in os.listdir(self.db_path) if os.path.isfile(os.path.join(self.db_path, f))]
@@ -96,7 +124,10 @@ class DbCreator(Command):
 
     def get_options(self):
             return [
-                    Option('--name', '-n', dest='dbname', default=self.db_name),
+                    Option('--name', '-n',
+                        dest='dbname',
+                        default=self.db_name,
+                        help="Filename of the Sqlite's file (default: db.sqlite)."),
             ]
         
 
@@ -117,7 +148,7 @@ class DbCreator(Command):
 manager.add_command('info', Info())
 manager.add_command('fuck', Fuck())
 manager.add_command('createdb', DbCreator())
-# manager.add_command('secret', SecretKey())
+manager.add_command('secretkey', SecretKey())
 
 if __name__ == '__main__':
     manager.run()

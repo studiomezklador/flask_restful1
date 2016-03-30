@@ -14,9 +14,6 @@ app = Flask(__name__)
 ai = Api(app, prefix='/v1')
 db = SQLAlchemy(app)
 
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
 app.config.from_pyfile(configFile)
-# app.config['JSONIFY_PRETTYPRINT_REGULAR'] = True
-# app.config['JSON_AS_ASCII'] = False
 
-
-app.config['SECRET_KEY'] = 'JDJiJDEwJHlaV043RkhadVNYQmlVYXhqSDVjLi41TFdFRy56OWdGMXpja3dvaFpQM3Nzb2hZWmhiNmpx'
