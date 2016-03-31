@@ -1,8 +1,10 @@
 import os
-from api.__init__ import parentdir
+from bootstrap import app
 
 db_file = 'main.sqlite'
-db_dir = os.path.join(parentdir, 'store', db_file)
+# db_dir = os.path.join(parentdir, 'store', db_file)
+db_dir = os.path.join(app.root_path, 'store', db_file)
+
 
 SQLALCHEMY_DATABASE_URI = "sqlite:///{}".format(db_dir)
 JSONIFY_PRETTYPRINT_REGULAR = True

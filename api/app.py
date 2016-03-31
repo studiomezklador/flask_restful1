@@ -1,5 +1,6 @@
 import os
-from api.__init__ import ai, app, db, parentdir
+# import __init__
+from bootstrap import ai, app, db, parentdir
 from flask_restful import reqparse, abort, Resource, fields, marshal
 from flask import g, jsonify, request, make_response
 # from models.auth import User, Role
@@ -8,11 +9,15 @@ from flask import g, jsonify, request, make_response
 def clientIp():
     g.client_ip = request.remote_addr
 
+ROOT = app.root_path
 
 class HelloWorld(Resource):
     def get(self):
         ip = request.remote_addr
-        return jsonify(dict(version='1.0', your_ip=g.client_ip, code=200, status=True, evil=None))
+        return jsonify(dict(version='1.0',
+                            abs_path=ROOT,
+                            your_ip=g.client_ip,
+                            code=200))
 
 """
 TODOS = {
@@ -89,4 +94,5 @@ ai.add_resource(TodoList, '/todos')
 ai.add_resource(Todo, '/todos/<int:todo_id>')
 
 if __name__ == '__main__':
+    print(parentdir)
     app.run(debug=True)

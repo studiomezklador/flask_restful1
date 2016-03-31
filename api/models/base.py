@@ -1,4 +1,4 @@
-from api.app import db as DB
+from app import db as DB
 # from flask.ext.sqlalchemy import SQLAlchemy
 # from app import app
 
