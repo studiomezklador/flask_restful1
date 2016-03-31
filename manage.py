@@ -121,6 +121,7 @@ class DbCreator(Command):
         self.db_path = os.path.join(parentdir, 'store')
         self.all_dbs = [f for f in os.listdir(self.db_path) if os.path.isfile(os.path.join(self.db_path, f))]
         self.db_name = db_name
+        self.config_file = os.path.join(parentdir, 'common', 'config.py')
 
     def get_options(self):
             return [
@@ -129,8 +130,6 @@ class DbCreator(Command):
                         default=self.db_name,
                         help="Filename of the Sqlite's file (default: db.sqlite)."),
             ]
-        
-
 
     def run(self, dbname):
         import api.models.auth
@@ -138,10 +137,30 @@ class DbCreator(Command):
         if dbn in self.all_dbs:
             print("{} already exists!".format(dbname))
             return False
-        print("Creating {0} at {1}".format(dbn, self.db_path))
-        print(database, app.config['SQLALCHEMY_DATABASE_URI'])
-        # database.create_all()
+        print("-" * 5, "Creating {0} at {1}".format(dbn, self.db_path), sep='\n')
+        self.overwriteDbFileValue(dbn)
+        print("-" * 5, "Overwriting db_file in common/config.py...", sep='\n')
+        database.create_all()
+        print("-" * 5, "Sqlite's file {} is now created!".format(dbn), "*" * 5, sep='\n')
         return True
+
+    def overwriteDbFileValue(self, dbfilename):
+        with(open(self.config_file, 'r')) as cfile:
+            cfile_data = cfile.readlines()
+        
+        for i, li in enumerate(cfile_data):
+            gMatch = re.match(r'^db_file\s=\s(.*)', li, re.I|re.U)
+            if gMatch:
+                nu_li = gMatch.group().split('=')
+                cfile_data[i] = "{0} = '{1}'\n".format(nu_li[0].rstrip(), dbfilename)
+        
+        nu_content = "".join(cfile_data)
+        
+        with(open(self.config_file, 'w')) as mfile:
+            mfile.write(nu_content)
+        
+        return True
+
 
 
 

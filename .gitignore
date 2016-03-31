@@ -62,4 +62,4 @@ target/
 .ipynb_checkpoints
 
 notes.txt
-api/store
+api/store/*
