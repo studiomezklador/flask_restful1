@@ -19,46 +19,81 @@ class HelloWorld(Resource):
                             your_ip=g.client_ip,
                             code=200))
 
-"""
 TODOS = {
-        'todo1': {'task': 'run something', 'status': None, 'active': True, 'integer': 5, 'float':45.123},
-        'todo2': {'task': 'build a box', 'status': [], 'active': False, 'integer':101, 'float':.257},
-    'todo3': {'task': 'busy-awared', 'status': ['yank', 'mystic'], 'active': True, 'integer':15, 'float':None},
+        'todo1': {'task': 'run something', 'status': None, 'active': True,},
+        'todo2': {'task': 'build a box', 'status': [], 'active': False, },
+        'todo3': {'task': 'busy-awared', 'status': ['yank', 'mystic'], 'active': True},
 
 }
-"""
 
-TODOS = [
-        {'id': 1, 'task': 'run something', 'status': None, 'active': True, 'integer': 5, 'float':45.123},
-        {'id': 2, 'task': 'build a box', 'status': [], 'active': False, 'integer':101, 'float':.257},
-        {'id': 3, 'task': 'busy-awared', 'status': ['yank', 'mystic'], 'active': True, 'integer':15, 'float':None},
+TODAS = [
+        {'id': 1, 'task': 'run something', 'status': None, 'active': True},
+        {'id': 2, 'task': 'build a box', 'status': [], 'active': False},
+        {'id': 3, 'task': 'busy-awared', 'status': ['yank', 'mystic'], 'active': True}
 ]
+
+
+class TodoObj(object):
+    """
+    Dynamic properties for this class, according to keys from a dict.
+    FROM: http://stackoverflow.com/questions/2466191/set-attributes-from-dictionary-in-python
+    """
+
+
+    def __init__(self, d):
+        for key in d:
+            setattr(self, key, d[key])
+
+    def __getattr__(self, value):
+        if value == 'id':
+            if self.id is not None:
+                return vars(self)
+        return getattr(self, value)
+
+
+class TodoContainer(object):
+    def __init__(self, todosList):
+        self.todos_obj = [TodoObj(x) for x in todosList]
+
+    def getBy(self, prop, value):
+        for it in self.todos_obj:
+            if getattr(it, prop) == value:
+                return vars(it)
+
+        return False
+
+    def all(self):
+        return [vars(obj) for obj in self.todos_obj]
+
+
+tc = TodoContainer(TODAS)
+
 
 todo_fields = {
     'id': fields.Integer,
     'task': fields.String,
     'status': fields.List,
     'active': fields.Boolean,
-    'integer': fields.Integer,
-    'float': fields.Float,
-    'uri': fields.Url('todo')
+    'uri': fields.Url('todo_id')
 
 }
 
 
 def error_todo_not_find(todo_id):
-    if int(todo_id) > len(TODOS) or (todo_id) < 0:
+    if int(todo_id) > len(tc.todos_obj) or (todo_id) < 0:
         abort(404, message="Todo {} does not exist".format(todo_id))
 
 parser= reqparse.RequestParser()
 parser.add_argument('task')
 parser.add_argument('p', type=int, location='args')
 
+
 class Todo(Resource):
     def get(self, todo_id):
-        error_todo_not_find(todo_id - 1)
-        return TODOS[todo_id - 1]
-
+        # error_todo_not_find(todo_id)
+        # return TODOS[todo_id]
+        return tc.getBy('id', todo_id), 200
+    
     def delete(self, todo_id):
         error_todo_not_find(todo_id)
         del TODOS[todo_id]
@@ -70,16 +105,18 @@ class Todo(Resource):
         TODOS[todo_id] = task
         return task, 201
 
+
 class TodoList(Resource):
     def get(self):
         args = parser.parse_args()
         paginate = args['p']
-        if paginate and paginate <= len(TODOS):
+        if paginate and paginate <= len(tc.todos_obj):
             return dict(per_page=paginate,
-                        total=len(TODOS),
-                        remain=len(TODOS) - paginate,
+                        total=len(tc.todos_obj),
+                        remain=len(tc.todos_obj) - paginate,
                         result=list(TODOS.items())[0:paginate])
-        return marshal(TODOS, todo_fields), 200
+        # return marshal(tc.all(), todo_fields), 200
+        return tc.all(), 200
 
     def post(self):
         args = parser.parse_args()
@@ -90,9 +127,8 @@ class TodoList(Resource):
                                           status="inserted")), 201)
 
 ai.add_resource(HelloWorld, '/')
-ai.add_resource(TodoList, '/todos')
-ai.add_resource(Todo, '/todos/<int:todo_id>')
+ai.add_resource(TodoList, '/todos', endpoint='todos')
+ai.add_resource(Todo, '/todos/<int:todo_id>', endpoint='todo')
 
 if __name__ == '__main__':
-    print(parentdir)
     app.run(debug=True)

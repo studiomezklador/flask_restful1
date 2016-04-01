@@ -18,6 +18,13 @@ manager = Manager(app)
 
 manager.help_args = ('-?', '--help')
 
+def _make_context():
+    """
+    Return context dict for shell session.
+    Easy access to app, db & other things to insert (like Models)...
+    """
+    return dict(app=app, db=database)
+
 class Info(Command):
     """ Display Python Version used by this API. """
     def __init__(self):
@@ -169,6 +176,7 @@ manager.add_command('info', Info())
 manager.add_command('fuck', Fuck())
 manager.add_command('createdb', DbCreator())
 manager.add_command('secretkey', SecretKey())
+manager.add_command('db', MigrateCommand)
 
 if __name__ == '__main__':
     manager.run()
