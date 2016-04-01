@@ -1,7 +1,7 @@
-from collections import OrderedDict
+# from collections import OrderedDict
 import os
 from bootstrap import ai, app, db, parentdir
-from flask_restful import reqparse, abort, Resource, fields, marshal_with
+from flask_restful import reqparse, abort, Resource, fields, marshal_with, marshal
 from flask import g, jsonify, request, make_response
 # from models.auth import User, Role
 
@@ -20,46 +20,41 @@ class HelloWorld(Resource):
                             code=200))
 
 TODOS = {
-        'todo1': {'task': 'run something', 'status': None, 'active': True,},
-        'todo2': {'task': 'build a box', 'status': [], 'active': False, },
-        'todo3': {'task': 'busy-awared', 'status': ['yank', 'mystic'], 'active': True},
-
+        1: {'task': 'run something', 'status': None, 'active': True,},
+        2: {'task': 'build a box', 'status': [], 'active': False, },
+        3: {'task': 'busy-awared', 'status': ['yank', 'mystic'], 'active': True},
 }
 
 TODAS = [
-        {'todo': 1, 'task': 'run something', 'status': None, 'active': False},
-        {'todo': 2, 'task': 'build a box', 'status': [], 'active': False},
-        {'todo': 3, 'task': 'busy-awared', 'status': ['yank', 'mystic'], 'active': True}
+        {'todo_id': 1, 'task': 'run something', 'status': None, 'active': False},
+        {'todo_id': 2, 'task': 'build a box', 'status': [], 'active': False},
+        {'todo_id': 3, 'task': 'busy-awared', 'status': ['yank', 'mystic'], 'active': True}
 ]
 
 
 class TodoObj(object):
     """
     Dynamic properties for this class, according to keys from a dict.
-    FROM: http://stackoverflow.com/questions/2466191/set-attributes-from-dictionary-in-python
+    FROM: http://goodcode.io/articles/python-dict-object/
     """
 
-
     def __init__(self, d):
-        for key in d:
-            setattr(self, key, d[key])
+        self.__dict__ = d
 
-    def __getattr__(self, value):
-        if value == 'id':
-            if self.id is not None:
-                return vars(self)
-        return getattr(self, value)
+    def __getattribute__(self, key):
+        return object.__getattribute__(self, key)
+    
 
 
 class TodoContainer(object):
     def __init__(self, todosList):
         self.todos_obj = [TodoObj(x) for x in todosList]
 
-    def getBy(self, prop, value):
-        for it in self.todos_obj:
-            if getattr(it, prop) == value:
-                return vars(it)
-
+    def getBy(self, **kw):
+        for prop, value in kw.items():
+            for it in self.todos_obj:
+                if getattr(it, prop) == value:
+                    return it
         return False
 
     def all(self):
@@ -70,11 +65,9 @@ tc = TodoContainer(TODAS)
 
 
 todo_fields = {
-    'todo': fields.Integer,
     'task': fields.String,
-    'status': fields.List,
     'active': fields.Boolean,
-    'uri': fields.Url('todo_it')
+    'uri': fields.Url('todo', absolute=True)
 }
 
 
@@ -84,16 +77,16 @@ def error_todo_not_find(todo_id):
 
 parser= reqparse.RequestParser()
 parser.add_argument('task')
+parser.add_argument('pp', type=int, location='args')
 parser.add_argument('p', type=int, location='args')
 
 
-class TodoItem(Resource):
-    @marshal_with(todo_fields)
-    def get(self, todo):
-        # error_todo_not_find(id)
-        res = tc.getBy('todo', todo)
-        print('-' * 10, res, '-' * 10, sep='\n')
-        return res, 200
+class Todo(Resource):
+    def get(self, todo_id, **kwargs):
+        res = tc.getBy(todo_id=todo_id)
+        if not res:
+            return error_todo_not_find(todo_id)
+        return marshal(res, todo_fields)
     
     def delete(self, todo_id):
         error_todo_not_find(todo_id)
@@ -111,15 +104,18 @@ class TodoList(Resource):
     @marshal_with(todo_fields)
     def get(self):
         args = parser.parse_args()
-        paginate = args['p']
+        paginate = args['pp']
+        target_page = args['p']
+        if target_page is None:
+            target_page = 0
+
         if paginate and paginate <= len(tc.todos_obj):
             return dict(per_page=paginate,
                         total=len(tc.todos_obj),
                         remain=len(tc.todos_obj) - paginate,
-                        result=list(TODOS.items())[0:paginate])
+                        result=list(tc.all())[0:paginate])
         result = tc.all()
         return result, 200
-        # return tc.all(), 200
 
     def post(self):
         args = parser.parse_args()
@@ -131,7 +127,7 @@ class TodoList(Resource):
 
 ai.add_resource(HelloWorld, '/')
 ai.add_resource(TodoList, '/todos', endpoint='todos')
-ai.add_resource(TodoItem, '/todo/<int:todo>', endpoint='todo_it')
+ai.add_resource(Todo, '/todo/<int:todo_id>')
 
 if __name__ == '__main__':
     app.run(debug=True)
