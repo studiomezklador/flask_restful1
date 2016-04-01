@@ -1,7 +1,7 @@
+from collections import OrderedDict
 import os
-# import __init__
 from bootstrap import ai, app, db, parentdir
-from flask_restful import reqparse, abort, Resource, fields, marshal
+from flask_restful import reqparse, abort, Resource, fields, marshal_with
 from flask import g, jsonify, request, make_response
 # from models.auth import User, Role
 
@@ -27,9 +27,9 @@ TODOS = {
 }
 
 TODAS = [
-        {'id': 1, 'task': 'run something', 'status': None, 'active': True},
-        {'id': 2, 'task': 'build a box', 'status': [], 'active': False},
-        {'id': 3, 'task': 'busy-awared', 'status': ['yank', 'mystic'], 'active': True}
+        {'todo': 1, 'task': 'run something', 'status': None, 'active': False},
+        {'todo': 2, 'task': 'build a box', 'status': [], 'active': False},
+        {'todo': 3, 'task': 'busy-awared', 'status': ['yank', 'mystic'], 'active': True}
 ]
 
 
@@ -70,12 +70,11 @@ tc = TodoContainer(TODAS)
 
 
 todo_fields = {
-    'id': fields.Integer,
+    'todo': fields.Integer,
     'task': fields.String,
     'status': fields.List,
     'active': fields.Boolean,
-    'uri': fields.Url('todo_id')
-
+    'uri': fields.Url('todo_it')
 }
 
 
@@ -88,11 +87,13 @@ parser.add_argument('task')
 parser.add_argument('p', type=int, location='args')
 
 
-class Todo(Resource):
-    def get(self, todo_id):
-        # error_todo_not_find(todo_id)
-        # return TODOS[todo_id]
-        return tc.getBy('id', todo_id), 200
+class TodoItem(Resource):
+    @marshal_with(todo_fields)
+    def get(self, todo):
+        # error_todo_not_find(id)
+        res = tc.getBy('todo', todo)
+        print('-' * 10, res, '-' * 10, sep='\n')
+        return res, 200
     
     def delete(self, todo_id):
         error_todo_not_find(todo_id)
@@ -107,6 +108,7 @@ class Todo(Resource):
 
 
 class TodoList(Resource):
+    @marshal_with(todo_fields)
     def get(self):
         args = parser.parse_args()
         paginate = args['p']
@@ -115,8 +117,9 @@ class TodoList(Resource):
                         total=len(tc.todos_obj),
                         remain=len(tc.todos_obj) - paginate,
                         result=list(TODOS.items())[0:paginate])
-        # return marshal(tc.all(), todo_fields), 200
-        return tc.all(), 200
+        result = tc.all()
+        return result, 200
+        # return tc.all(), 200
 
     def post(self):
         args = parser.parse_args()
@@ -128,7 +131,7 @@ class TodoList(Resource):
 
 ai.add_resource(HelloWorld, '/')
 ai.add_resource(TodoList, '/todos', endpoint='todos')
-ai.add_resource(Todo, '/todos/<int:todo_id>', endpoint='todo')
+ai.add_resource(TodoItem, '/todo/<int:todo>', endpoint='todo_it')
 
 if __name__ == '__main__':
     app.run(debug=True)
