@@ -1,1 +1,1 @@
-__all__ = ['TodoList', 'Todo']
+__all__ = [TodoList, Todo]
