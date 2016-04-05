@@ -1,4 +1,26 @@
-form flask_restful import Resource, marshal, marshal_with
+from flask_restful import abort, Resource, reqparse, fields, marshal, marshal_with
+from .todotools import TodoContainer
+from models.todos import TODAS
+
+todo_fields = {
+    'task': fields.String,
+    'active': fields.Boolean,
+    'uri': fields.Url('todo', absolute=True)
+}
+
+
+parser= reqparse.RequestParser()
+parser.add_argument('task')
+parser.add_argument('pp', type=int, location='args')
+parser.add_argument('p', type=int, location='args')
+
+tc = TodoContainer(TODAS)
+
+
+def error_todo_not_find(todo_id):
+    if int(todo_id) > len(tc.todos_obj) or (todo_id) < 0:
+        abort(404, message="Todo {} does not exist".format(todo_id))
+
 
 class Todo(Resource):
     def get(self, todo_id, **kwargs):

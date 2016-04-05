@@ -1,1 +1,3 @@
-__all__ = [TodoList, Todo]
+from .todos import Todo, TodoList
+
+__all__ = ['TodoList', 'Todo']
