@@ -1,11 +1,17 @@
-# from collections import OrderedDict
 import os
-from bootstrap import ai, app, db, parentdir
-from flask_restful import reqparse, abort, Resource, fields, marshal_with, marshal
+from bootstrap import ai, app, db
+from flask_restful import (
+    reqparse,
+    abort,
+    Resource,
+    fields,
+    marshal_with,
+    marshal)
 from flask import g, jsonify, request, make_response
 
 from resources.prototypes.todos import Todo, TodoList
 # from models.auth import User, Role
+
 
 @app.before_request
 def clientIp():
