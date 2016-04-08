@@ -4,8 +4,11 @@ from flask_restful import (abort,
                            fields,
                            marshal,
                            marshal_with)
+
+from flask import jsonify, make_response
+
 from .todotools import TodoContainer
-from models.todos import TODAS
+from models.todo_fake_model import TODAS
 
 todo_fields = {
     'task': fields.String,
@@ -36,14 +39,14 @@ class Todo(Resource):
 
     def delete(self, todo_id):
         error_todo_not_find(todo_id)
-        del TODOS[todo_id]
+        del TODAS[todo_id]
         return dict(msg="{} removed".format(todo_id)), 203
 
     def put(self, todo_id):
         args = parser.parse_args()
         tasks = {'task': args['task']}
-        TODOS[todo_id] = task
-        return task, 201
+        TODAS[todo_id] = tasks
+        return tasks, 201
 
 
 class TodoList(Resource):
@@ -68,8 +71,8 @@ class TodoList(Resource):
 
     def post(self):
         args = parser.parse_args()
-        todo_id = int(max(TODOS.keys()).lstrip('todo')) + 1
+        todo_id = int(max(TODAS.keys()).lstrip('todo')) + 1
         todo_id = 'todo{}'.format(todo_id)
-        TODOS[todo_id] = {'task': args['task']}
-        return make_response(jsonify(dict(result=TODOS[todo_id],
+        TODAS[todo_id] = {'task': args['task']}
+        return make_response(jsonify(dict(result=TODAS[todo_id],
                                           status="inserted")), 201)

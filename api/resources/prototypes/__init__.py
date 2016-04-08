@@ -1,3 +1,3 @@
-from .todos import Todo, TodoList
+# from .todos import Todo, TodoList
 
-__all__ = ['TodoList', 'Todo']
+__all__ = ['Todo', 'TodoList']
