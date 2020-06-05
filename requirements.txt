@@ -19,7 +19,7 @@ curtsies==0.1.19
 cv2==1.0
 Cython==0.24
 decorator==4.0.9
-Django==1.9.5
+Django==1.11.29
 extras==0.0.3
 fake-factory==0.5.7
 flake8==2.5.4
