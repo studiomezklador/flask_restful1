@@ -77,7 +77,7 @@ termcolor==1.1.0
 thefuck==3.7
 tornado==4.3
 traitlets==4.1.0
-Twisted==16.0.0
+Twisted==20.3.0
 txaio==2.2.2
 urllib3==1.15
 virtualenv==15.0.0
