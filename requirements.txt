@@ -79,7 +79,7 @@ tornado==4.3
 traitlets==4.1.0
 Twisted==16.0.0
 txaio==2.2.2
-urllib3==1.15
+urllib3==1.26.5
 virtualenv==15.0.0
 Werkzeug==0.11.4
 zope.interface==4.1.3
