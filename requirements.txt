@@ -74,7 +74,7 @@ South==1.0.2
 SQLAlchemy==1.0.12
 team==1.0
 termcolor==1.1.0
-thefuck==3.7
+thefuck==3.31
 tornado==4.3
 traitlets==4.1.0
 Twisted==16.0.0
