@@ -28,7 +28,7 @@ future==0.15.2
 greenlet==0.4.9
 html5lib==0.9999999
 http-parser==0.8.3
-httpie==0.9.3
+httpie==3.1.0
 idna==2.1
 ipython==4.1.2
 ipython-genutils==0.1.0
