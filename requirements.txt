@@ -26,7 +26,7 @@ flake8==2.5.4
 Flask==0.10.1
 future==0.15.2
 greenlet==0.4.9
-html5lib==0.9999999
+html5lib==0.999999999
 http-parser==0.8.3
 httpie==0.9.3
 idna==2.1
